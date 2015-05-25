@@ -45,3 +45,7 @@ class TreeReader(object):
         if not ret:
             raise StopIteration
         return ret
+
+    def __getitem__(self, ind):
+        self._reader.SetEntry(ind)
+        return self
