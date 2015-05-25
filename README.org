@@ -1,3 +1,68 @@
 #+TITLE: lard - a daemon to grease the wheels
 
+* How to run it
+
+ - Installation t.b.d.
+ - command line t.b.d.
+
+#+BEGIN_EXAMPLE
+  $ python lard/server.py
+  $ curl -H "Content-type: application/wc3dvis+json;version=2.0" \
+         -X POST http://localhost:8899/celltree/tests/test.root
+#+END_EXAMPLE
+
+* How does it work
+
+The lard server is split into three distinct parts:
+
+ - data source adapter 
+ - intermediate, transient data representation
+ - rendering to requested output form
+
+This layering is done in order to support multiple back-end data sources feeding data to multiple front-end clients.
+
+** Data sources
+
+The data sources that can be read are determined by the path part of the URL.  The URL is of the form:
+
+#+BEGIN_EXAMPLE
+http://localhost:8899/<adapter>/<path>
+#+END_EXAMPLE
+
+Available adapters are provided by the Python modules under [[./lard/adapters][=lard.adapaters=]].  The =<path>= URL element is interpreted as a file location.  Depending on the adapter this path may be another URL (see the [[ROOT adapters]] below)
+
+** Render forms
+
+The format to be rendered is determined by the =Content-Type= HTTP header that the client sets.  The lard server will attempt to find a suitable render module (one under [[./lard/renderers/][=lard.renderers=]]) based on this header.  For example the =Content-Type=
+
+#+BEGIN_EXAMPLE
+application/wc3dvis
+#+END_EXAMPLE
+
+matches what is expected by the [[https://github.com/BNLIF/wire-cell-3dvis][wire-cell-3dvis]] display (fixme: not yet actually true).
+
+** Intermediate data
+
+The form of the intermediate, transient data is only important to authors of adapters for data sources or for renderers.  See the [[./lard/data.py][=lard.data=]] module.
+
+* Available adapters
+
+** ROOT adapters
+
+Adapters to ROOT files can make use of the [[./lard/root.py][=lard.root=]] module which provides a generic way to read ROOT TTrees based on the =TTreeReader= mechanism.  It will give automatic access to ROOT trees without the need to provide explicit dictionaries as long as the leaves are known data types.  Note that the connection to a leaf is via a C++ pointer and POD requires a Python cast (eg, =int(reader.simide_size)=) to get a usable value.  See [[./tests/test_root.py]].
+
+** Celltree
+
+The =celltree= adapter provides access to ROOT TTree in [[https://github.com/BNLIF/wire-cell-celltree][wire-cell-celltree]] aka [[https://github.com/BNLIF/wire-cell-sst][wire-cell-sst]] schema.
+
+** LarSoft
+
+The =larsoft= adapter (t.b.d.) provides access to files produced by LArSoft-based simulation.
+
+* Supported front-ends
+
+The front-ends supported by lard include:
+
+ - [[https://github.com/BNLIF/wire-cell-3dvis][wire-cell-3dvis]] display (fixme: not yet actually true).
+ - [[http://argo-microboone.fnal.gov/][Argo]] (fixme: not now, maybe one day)
 
